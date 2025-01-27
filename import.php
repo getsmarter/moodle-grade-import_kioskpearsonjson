@@ -14,22 +14,25 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
+global $CFG, $PAGE, $DB, $OUTPUT;
 require_once '../../../config.php';
 require_once 'lib.php';
 require_once $CFG->libdir.'/filelib.php';
 
-$url       = required_param('url', PARAM_URL); // only real urls here
-$id        = required_param('id', PARAM_INT); // course id
-$feedback  = optional_param('feedback', 0, PARAM_BOOL);
+$url = required_param('url', PARAM_URL);
+// only real urls here
+$id = required_param('id', PARAM_INT);
+// course id
+$feedback = optional_param('feedback', 0, PARAM_BOOL);
 
-$url = new moodle_url('/grade/import/kioskpearsonjson/import.php', array('id'=>$id,'url'=>$url));
+$url = new moodle_url('/grade/import/kioskpearsonjson/import.php', ['id' => $id, 'url' => $url]);
 if ($feedback !== 0) {
     $url->param('feedback', $feedback);
 }
+
 $PAGE->set_url($url);
 
-if (!$course = $DB->get_record('course', array('id'=>$id))) {
+if (!$course = $DB->get_record('course', ['id' => $id])) {
     print_error('nocourseid');
 }
 
@@ -51,20 +54,19 @@ if ($text === false) {
     print_error('cannotreadfile');
 }
 
-$error = '';
+$error      = '';
 $importcode = import_kioskpearsonjson_grades($text, $course, $error);
 
 if ($importcode !== false) {
-    /// commit the code if we are up this far
-
+    // commit the code if we are up this far
     if (defined('USER_KEY_LOGIN')) {
         if (grade_import_commit($id, $importcode, $feedback, false)) {
             echo 'ok';
             die;
         } else {
-            print_error('cannotimportgrade'); //TODO: localize
+            print_error('cannotimportgrade');
+            // TODO: localize
         }
-
     } else {
         print_grade_page_head($course->id, 'import', 'kioskpearsonjson', get_string('importkioskpearsonjson', 'grades'));
 
@@ -73,9 +75,6 @@ if ($importcode !== false) {
         echo $OUTPUT->footer();
         die;
     }
-
 } else {
     print_error('error', 'gradeimport_kioskpearsonjson');
-}
-
-
+}//end if
